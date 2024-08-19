@@ -3,7 +3,7 @@ const app = express()
 
 app.use(express.json())
 
-const persons = [
+let persons = [
     { 
         "id": "1",
         "name": "Arto Hellas", 
@@ -40,6 +40,35 @@ app.get('/info', (request, response) => {
     const message = `Phonebook has info for ${persons.length} people<br/>${Date()}`
     response.send(message)
 })
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+    if (!body.name || !body.number) {
+        return response.status(400).json({
+            error: 'New entry must have a name and number.'
+        })
+    }
+    if (persons.some(person => person.name === body.name)) {
+        return response.status(400).json({
+            error: 'Name already added to the phone book.'
+        })
+    }
+
+    const person = {
+        name: body.name,
+        number: body.number,
+        id: Math.random() * (1000000 - 5) + 5
+    }
+    persons = persons.concat(person)
+    response.json(person)
+})
+
+app.delete('/api/persons/:id', (request, response) => {
+    const id = request.params.id
+    persons = persons.filter(person => person.id !== id)
+    response.status(204).end()
+})
+
 
 const PORT = 3001
 app.listen(PORT, () => {
